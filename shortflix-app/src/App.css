@@ -1,59 +1,102 @@
-/* 전체 화면 레이아웃 */
+/* 1. 기본 스타일 초기화 (쏠림 문제 해결) */
+/* 모든 요소의 기본 여백과 패딩을 제거하고, 크기 계산 방식을 통일합니다. */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* html, body, #root가 화면 전체를 차지하도록 설정 */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+/* 2. 기존 스타일 개선 (중앙 정렬 및 디자인) */
 .genre-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  width: 100%; /* 너비를 100%로 설정 */
+  min-height: 100vh; /* 화면의 최소 높이를 100%로 설정 */
   background-color: #141414;
   color: white;
   text-align: center;
-  padding: 20px;
+  padding: 20px; /* 좌우 패딩 추가 */
 }
 
-/* 장르 버튼들을 감싸는 영역 */
+h1 {
+    font-size: 1.8rem; /* 기본 글자 크기 */
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 1rem;
+    margin-bottom: 30px;
+    color: #aaa;
+}
+
 .genre-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px; /* 버튼 사이 간격 */
+  gap: 15px;
   justify-content: center;
-  max-width: 800px;
-  margin: 30px 0;
+  width: 100%; /* 너비를 100%로 설정 */
+  max-width: 800px; /* 최대 너비는 유지 */
 }
 
-/* 장르 버튼 기본 스타일 */
 .genre-button {
   background-color: #333;
   color: white;
   border: 1px solid #555;
-  border-radius: 50px; /* 타원형 버튼 */
-  padding: 12px 25px;
-  font-size: 1.1rem;
+  border-radius: 50px;
+  padding: 10px 20px; /* 패딩 약간 축소 */
+  font-size: 1rem; /* 기본 글자 크기 */
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
 }
 
-/* 마우스를 올렸을 때 스타일 */
 .genre-button:hover {
   background-color: #444;
   transform: scale(1.05);
 }
 
-/* 선택된 버튼 스타일 */
 .genre-button.selected {
-  background-color: #e50914; /* 넷플릭스 레드 */
+  background-color: #e50914;
   border-color: #e50914;
   font-weight: bold;
 }
 
-/* 다음 단계로 넘어가는 버튼 */
 .next-button {
-    background-color: #e50914;
-    color: white;
-    border: none;
-    border-radius: 5px;
+  background-color: #e50914;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 35px; /* 패딩 약간 축소 */
+  font-size: 1.1rem; /* 기본 글자 크기 */
+  cursor: pointer;
+  margin-top: 40px;
+}
+
+
+/* 3. 반응형 디자인 추가 (모바일, 태블릿) */
+/* @media 쿼리를 사용해 화면 너비에 따라 다른 스타일을 적용합니다. */
+
+/* 태블릿 사이즈 (768px 이상) */
+@media (min-width: 768px) {
+  h1 {
+    font-size: 2.5rem; /* 제목 글자 크기 키움 */
+  }
+  p {
+    font-size: 1.2rem;
+  }
+  .genre-button {
+    padding: 12px 25px;
+    font-size: 1.1rem; /* 버튼 글자 크기 키움 */
+  }
+  .next-button {
     padding: 15px 40px;
     font-size: 1.2rem;
-    cursor: pointer;
-    margin-top: 20px;
+  }
 }

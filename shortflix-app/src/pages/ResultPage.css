@@ -1,0 +1,69 @@
+.results-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #141414;
+  color: white;
+  padding: 40px 20px;
+}
+
+.loading-text, .error-text {
+    font-size: 1.5rem;
+    margin-top: 20vh;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 모바일에서는 2열 */
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 30px;
+}
+
+.video-card {
+  background-color: #222;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.video-card:hover {
+  transform: scale(1.05);
+}
+
+.video-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9; /* 16:9 비율 유지 */
+  object-fit: cover;
+}
+
+.video-card-title {
+  padding: 10px;
+  font-size: 0.9rem;
+  /* 제목이 길 경우 ...으로 표시 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 태블릿 사이즈 */
+@media (min-width: 768px) {
+  .results-grid {
+    grid-template-columns: repeat(3, 1fr); /* 태블릿에서는 3열 */
+  }
+}
+
+/* PC 사이즈 */
+@media (min-width: 1024px) {
+  .results-grid {
+    grid-template-columns: repeat(5, 1fr); /* PC에서는 5열 */
+  }
+  .video-card-title {
+    font-size: 1rem;
+  }
+}
