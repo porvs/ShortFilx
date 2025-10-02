@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import './ResultPage.css';
 
 function ResultPage() {
@@ -16,7 +16,6 @@ function ResultPage() {
         const searchQuery = `${selectedGenres.join(' ')} short film`;
         const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-        // videoDuration=long 파라미터로 변경 (20분 이상 영상)
         const youtubeResponse = await fetch(
           `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
             searchQuery
@@ -26,7 +25,8 @@ function ResultPage() {
         if (!youtubeResponse.ok) {
           throw new Error('YouTube API에서 데이터를 가져오는데 실패했습니다.');
         }
-        const youtubeData = await youtubeResponse.json();
+        // 바로 이 부분의 'response'를 'youtubeResponse'로 수정했습니다.
+        const youtubeData = await youtubeResponse.json(); 
         
         setVideos(youtubeData.items);
 
@@ -58,10 +58,10 @@ function ResultPage() {
       <h1>'{selectedGenres.join(', ')}' 추천 결과</h1>
       <div className="results-grid">
         {videos.map((video) => (
-          <div key={video.id.videoId} className="video-card">
+          <Link to={`/video/${video.id.videoId}`} key={video.id.videoId} className="video-card">
             <img src={video.snippet.thumbnails.medium.url} alt={video.snippet.title} />
             <p className="video-card-title">{video.snippet.title}</p>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

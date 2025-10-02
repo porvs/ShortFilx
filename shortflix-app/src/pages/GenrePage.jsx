@@ -28,7 +28,6 @@ function GenrePage() {
   };
 
   return (
-    // 내용은 이전과 동일합니다.
     <div className="genre-container">
       <h1>어떤 장르의 단편 영화를 좋아하세요?</h1>
       <p>선호하는 장르를 모두 선택해주세요.</p>

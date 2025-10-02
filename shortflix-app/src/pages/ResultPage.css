@@ -51,14 +51,14 @@
   text-overflow: ellipsis;
 }
 
-/* 태블릿 사이즈 */
+/* 태블릿 스크린 사이즈 */
 @media (min-width: 768px) {
   .results-grid {
     grid-template-columns: repeat(3, 1fr); /* 태블릿에서는 3열 */
   }
 }
 
-/* PC 사이즈 */
+/* PC 스크린 사이즈 */
 @media (min-width: 1024px) {
   .results-grid {
     grid-template-columns: repeat(5, 1fr); /* PC에서는 5열 */
