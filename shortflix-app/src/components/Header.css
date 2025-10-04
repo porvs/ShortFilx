@@ -1,0 +1,55 @@
+.app-header {
+  width: 100%;
+  padding: 20px 5%;
+  background-color: #141414;
+  box-sizing: border-box;
+  /* Flexbox를 이용해 로고와 검색창을 양쪽 끝으로 배치 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo-link {
+  text-decoration: none;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #e50914; /* 넷플릭스 레드 */
+  cursor: pointer;
+}
+
+/* --- 아래 검색창 스타일 추가 --- */
+.search-form {
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid #555;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.search-input {
+  background-color: transparent;
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-button {
+  background-color: transparent;
+  border: none;
+  color: white;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}

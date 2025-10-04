@@ -1,0 +1,9 @@
+.app-footer {
+  width: 100%;
+  padding: 20px 5%;
+  background-color: #101010;
+  color: #888;
+  text-align: center;
+  box-sizing: border-box;
+  margin-top: auto; /* 페이지 내용이 적어도 푸터를 하단에 위치시킴 */
+}

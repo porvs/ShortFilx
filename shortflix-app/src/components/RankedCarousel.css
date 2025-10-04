@@ -1,0 +1,55 @@
+.carousel-container {
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.carousel-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  padding-left: 24px; /* 고정 px 단위로 변경 */
+}
+
+.carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* 스크롤 영역 자체에 고정된 좌우 여백을 줍니다 */
+  padding: 10px 24px; 
+  box-sizing: border-box;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.rank-item {
+  flex-shrink: 0;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s;
+}
+
+.rank-item:hover {
+  transform: scale(1.1);
+  z-index: 20;
+}
+
+.rank-number {
+  font-size: 8rem;
+  font-weight: bold;
+  color: #333;
+  -webkit-text-stroke: 2px #555;
+  transform: translateX(30%);
+}
+
+.rank-thumbnail {
+  width: 150px;
+  height: 225px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin-left: -60px;
+  z-index: 10;
+  border: 1px solid #333;
+}

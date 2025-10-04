@@ -79,6 +79,35 @@ p {
   margin-top: 40px;
 }
 
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1; /* 메인 영역이 남은 공간을 모두 차지하도록 함 */
+}
+
+/* --- 아래 코드를 App.css에 추가 --- */
+
+/* 페이드인 애니메이션 정의 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 메인 콘텐츠에 애니메이션 적용 */
+.main-content {
+  flex-grow: 1;
+  animation: fadeIn 0.5s ease-in-out;
+}
 
 /* 3. 반응형 디자인 추가 (모바일, 태블릿) */
 /* @media 쿼리를 사용해 화면 너비에 따라 다른 스타일을 적용합니다. */
@@ -100,3 +129,4 @@ p {
     font-size: 1.2rem;
   }
 }
+

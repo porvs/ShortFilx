@@ -51,6 +51,21 @@
   text-overflow: ellipsis;
 }
 
+.video-card {
+  background-color: #222;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  /* 부드러운 전환 효과를 위해 transition 속성 추가 */
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.video-card:hover {
+  /* 기존 확대 효과에 그림자 효과 추가 */
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
 /* 태블릿 스크린 사이즈 */
 @media (min-width: 768px) {
   .results-grid {
