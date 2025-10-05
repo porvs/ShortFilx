@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import GenrePage from './pages/GenrePage';
 import ResultPage from './pages/ResultPage';
 import DetailPage from './pages/DetailPage';
-import HomePage from './pages/HomePage'; // HomePage 불러오기
+// HomePage는 더 이상 기본 페이지가 아니므로 주석 처리하거나 삭제해도 됩니다.
+// import HomePage from './pages/HomePage'; 
 import Header from './components/Header';
 import Footer from './components/Footer';
 import './App.css';
@@ -14,10 +15,9 @@ function App() {
       <Header />
       <main className="main-content">
         <Routes>
-          {/* 기본 경로를 HomePage로 변경 */}
-          <Route path="/" element={<HomePage />} /> 
-          {/* 장르 선택은 별도 경로로 지정 (나중에 메뉴 등에서 접근) */}
-          <Route path="/genres" element={<GenrePage />} /> 
+          {/* 기본 경로('/')를 다시 GenrePage로 설정합니다. */}
+          <Route path="/" element={<GenrePage />} />
+          
           <Route path="/results" element={<ResultPage />} />
           <Route path="/video/:videoId" element={<DetailPage />} />
         </Routes>

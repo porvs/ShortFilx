@@ -1,37 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, Link, useSearchParams } from 'react-router-dom';
-import './ResultPage.css';
+import { useLocation } from 'react-router-dom';
+import RankedCarousel from '../components/RankedCarousel'; // TOP 10 스타일 컴포넌트 불러오기
+
+// 한국어 장르를 영어 검색어로 바꿔주기 위한 객체
+const genreMap = {
+  '스릴러': 'thriller',
+  '코미디': 'comedy',
+  'SF': 'sci-fi',
+  '드라마': 'drama',
+  '애니메이션': 'animation',
+  '다큐멘터리': 'documentary',
+  '로맨스': 'romance',
+  '액션': 'action',
+  '호러': 'horror',
+  '판타지': 'fantasy'
+};
 
 function ResultPage() {
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-
-  // URL에서 검색어 가져오기 (예: /results?search=space)
-  const searchTerm = searchParams.get('search');
-  // 이전 방식의 장르 목록 가져오기
   const selectedGenres = location.state?.genres || [];
 
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [title, setTitle] = useState('');
 
   useEffect(() => {
     const fetchVideos = async () => {
-      try {
-        let searchQuery = '';
-        // 검색어가 있으면 검색어를 우선 사용, 없으면 장르 선택 결과를 사용
-        if (searchTerm) {
-          setTitle(`'${searchTerm}' 검색 결과`);
-          searchQuery = `${searchTerm} short film`;
-        } else if (selectedGenres.length > 0) {
-          setTitle(`'${selectedGenres.join(', ')}' 추천 결과`);
-          searchQuery = `${selectedGenres.join(' ')} short film`;
-        } else {
-          throw new Error("검색어나 선택된 장르가 없습니다.");
-        }
+      if (selectedGenres.length === 0) {
+        setError("선택된 장르가 없습니다.");
+        setLoading(false);
+        return;
+      }
 
+      try {
+        // 선택된 한국어 장르들을 영어로 변환
+        const englishGenres = selectedGenres.map(genre => genreMap[genre] || genre);
+        const searchQuery = `${englishGenres.join(' ')} short film`;
         const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+
+        // regionCode, relevanceLanguage를 제거하여 전 세계적으로 검색
         const response = await fetch(
           `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
             searchQuery
@@ -50,22 +57,15 @@ function ResultPage() {
     };
 
     fetchVideos();
-  }, [searchTerm, location.state]); // searchTerm이나 location.state가 바뀔 때마다 재실행
+  }, [location.state]);
 
-  if (loading) return <div className="loading-text">🔍 검색 결과를 찾고 있어요...</div>;
+  if (loading) return <div className="loading-text">🔍 영화 순위를 불러오고 있어요...</div>;
   if (error) return <div className="error-text">⚠️ 이런! 에러가 발생했어요: {error}</div>;
 
   return (
-    <div className="results-container">
-      <h1>{title}</h1>
-      <div className="results-grid">
-        {videos.map((video) => (
-          <Link to={`/video/${video.id.videoId}`} key={video.id.videoId} className="video-card">
-            <img src={video.snippet.thumbnails.medium.url} alt={video.snippet.title} />
-            <p className="video-card-title">{video.snippet.title}</p>
-          </Link>
-        ))}
-      </div>
+    <div className="homepage-container">
+        {/* UI를 RankedCarousel 컴포넌트로 변경 */}
+        <RankedCarousel title={`'${selectedGenres.join(', ')}' 장르 TOP 10`} videos={videos} />
     </div>
   );
 }
