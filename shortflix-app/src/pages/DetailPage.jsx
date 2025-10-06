@@ -8,19 +8,30 @@ function DetailPage() {
   const [videoDetails, setVideoDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isUnplayable, setIsUnplayable] = useState(false); // 재생 불가 상태 추가
+  const [isUnplayable, setIsUnplayable] = useState(false);
   
-  const playerRef = useRef(null); // 유튜브 플레이어 객체를 담을 ref
+  const playerRef = useRef(null);
 
   useEffect(() => {
-    // 1. 영상 상세 정보 가져오기
+    // --- 시청 기록 저장 로직 ---
+    try {
+      const watchedList = JSON.parse(localStorage.getItem('watchedVideos') || '[]');
+      if (!watchedList.includes(videoId)) {
+        watchedList.push(videoId);
+        localStorage.setItem('watchedVideos', JSON.stringify(watchedList));
+      }
+    } catch (e) {
+      console.error("Failed to update watch history:", e);
+    }
+    // --- 시청 기록 저장 로직 끝 ---
+
     const fetchVideoDetails = async () => {
       try {
         const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
         const response = await fetch(
           `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${YOUTUBE_API_KEY}&hl=ko`
         );
-        if (!response.ok) throw new Error('영상 정보를 가져오는데 실패했습니다.');
+        if (!response.ok) throw new Error('YouTube API에서 영상 정보를 가져오는데 실패했습니다.');
         const data = await response.json();
         if (data.items.length > 0) {
           setVideoDetails(data.items[0]);
@@ -34,9 +45,8 @@ function DetailPage() {
       }
     };
 
-    // 2. YouTube Iframe Player API 스크립트 로드
     const loadYouTubeAPI = () => {
-      if (!window.YT) { // 이미 로드되어 있으면 다시 로드하지 않음
+      if (!window.YT) {
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
@@ -47,26 +57,22 @@ function DetailPage() {
       }
     };
 
-    // 3. API가 준비되면 플레이어 생성
     const onYouTubeIframeAPIReady = () => {
+      if(playerRef.current) {
+        playerRef.current.destroy();
+      }
       playerRef.current = new window.YT.Player('player', {
         height: '390',
         width: '640',
         videoId: videoId,
-        playerVars: {
-          'autoplay': 1,
-        },
-        events: {
-          'onError': onPlayerError
-        }
+        playerVars: { 'autoplay': 1 },
+        events: { 'onError': onPlayerError }
       });
     };
 
-    // 4. 플레이어 에러 처리 함수
     const onPlayerError = (event) => {
-      // 에러 코드 100, 101, 150은 보통 퍼가기 금지 관련 에러
       if (event.data === 100 || event.data === 101 || event.data === 150) {
-        setIsUnplayable(true); // 재생 불가 상태로 변경
+        setIsUnplayable(true);
       }
     };
     
@@ -75,7 +81,6 @@ function DetailPage() {
         loadYouTubeAPI();
     }
 
-    // 컴포넌트가 사라질 때 플레이어 정리
     return () => {
         if(playerRef.current && playerRef.current.destroy) {
             playerRef.current.destroy();
@@ -97,7 +102,6 @@ function DetailPage() {
     <div className="detail-container">
       <div className="video-player-wrapper">
         <div className="youtube-player">
-            {/* isUnplayable 상태에 따라 재생 불가 화면 표시 */}
             {isUnplayable ? (
                 <div className="unplayable-overlay">
                     <p>이 동영상은 YouTube에서만 시청할 수 있습니다.</p>
