@@ -1,0 +1,27 @@
+.filter-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.filter-segment {
+  display: flex;
+  border: 1px solid #555;
+  border-radius: 50px;
+  overflow: hidden;
+}
+
+.filter-button {
+  background-color: transparent;
+  color: #999;
+  border: none;
+  padding: 8px 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.filter-button.active {
+  background-color: #e50914;
+  color: white;
+}

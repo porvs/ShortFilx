@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../App.css'; // 경로가 ../App.css 여야 합니다.
+import '../App.css';
 
+// 추천할 장르 목록
 const genres = [
   '스릴러', '코미디', 'SF', '드라마', '애니메이션',
   '다큐멘터리', '로맨스', '액션', '호러', '판타지'
 ];
 
 function GenrePage() {
+  // 사용자가 선택한 장르들을 저장하는 상태 (useState)
   const [selectedGenres, setSelectedGenres] = useState([]);
   const navigate = useNavigate();
 
+  // 장르 버튼을 클릭했을 때 실행될 함수
   const handleGenreClick = (genre) => {
     if (selectedGenres.includes(genre)) {
       setSelectedGenres(selectedGenres.filter((g) => g !== genre));
@@ -19,11 +22,13 @@ function GenrePage() {
     }
   };
 
+  // 다음 페이지로 넘어가는 버튼 클릭 시
   const handleNextClick = () => {
     if (selectedGenres.length === 0) {
       alert('하나 이상의 장르를 선택해주세요.');
       return;
     }
+    // 영상 길이 정보를 빼고, 장르 정보만 전달합니다.
     navigate('/results', { state: { genres: selectedGenres } });
   };
 
@@ -42,8 +47,9 @@ function GenrePage() {
           </button>
         ))}
       </div>
+
       <button className="next-button" onClick={handleNextClick}>
-        추천 받기
+         추천 받기
       </button>
     </div>
   );

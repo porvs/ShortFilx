@@ -12,6 +12,33 @@ html, body, #root {
   width: 100%;
 }
 
+/* --- 추가된 부분 --- */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1; /* 메인 영역이 남은 공간을 모두 차지하도록 함 */
+  /* 페이드인 애니메이션 적용 */
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* 페이드인 애니메이션 정의 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* --- 여기까지 추가된 부분 --- */
+
+
 /* 2. 기존 스타일 개선 (중앙 정렬 및 디자인) */
 .genre-container {
   display: flex;
@@ -19,11 +46,11 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   width: 100%; /* 너비를 100%로 설정 */
-  min-height: 100vh; /* 화면의 최소 높이를 100%로 설정 */
+  min-height: 100%; /* 최소 높이를 100%로 설정 */
   background-color: #141414;
   color: white;
   text-align: center;
-  padding: 20px; /* 좌우 패딩 추가 */
+  padding: 40px 20px; /* 상하 패딩 추가 */
 }
 
 h1 {
@@ -40,10 +67,11 @@ p {
 .genre-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 20px; /* 버튼 사이 간격을 15px -> 20px로 늘림 */
   justify-content: center;
   width: 100%; /* 너비를 100%로 설정 */
   max-width: 800px; /* 최대 너비는 유지 */
+  margin: 20px 0; /* 상하 마진 조정 */
 }
 
 .genre-button {
@@ -51,8 +79,8 @@ p {
   color: white;
   border: 1px solid #555;
   border-radius: 50px;
-  padding: 10px 20px; /* 패딩 약간 축소 */
-  font-size: 1rem; /* 기본 글자 크기 */
+  padding: 10px 20px;
+  font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
 }
@@ -73,41 +101,12 @@ p {
   color: white;
   border: none;
   border-radius: 5px;
-  padding: 12px 35px; /* 패딩 약간 축소 */
-  font-size: 1.1rem; /* 기본 글자 크기 */
+  padding: 12px 35px;
+  font-size: 1.1rem;
   cursor: pointer;
-  margin-top: 40px;
+  margin-top: 40px; /* '추천 받기' 버튼과의 간격 */
 }
 
-#root {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.main-content {
-  flex-grow: 1; /* 메인 영역이 남은 공간을 모두 차지하도록 함 */
-}
-
-/* --- 아래 코드를 App.css에 추가 --- */
-
-/* 페이드인 애니메이션 정의 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* 메인 콘텐츠에 애니메이션 적용 */
-.main-content {
-  flex-grow: 1;
-  animation: fadeIn 0.5s ease-in-out;
-}
 
 /* 3. 반응형 디자인 추가 (모바일, 태블릿) */
 /* @media 쿼리를 사용해 화면 너비에 따라 다른 스타일을 적용합니다. */
@@ -129,4 +128,3 @@ p {
     font-size: 1.2rem;
   }
 }
-
