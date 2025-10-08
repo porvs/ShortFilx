@@ -1,23 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react'; // useState 추가
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import GenrePage from './pages/GenrePage';
 import ResultPage from './pages/ResultPage';
 import DetailPage from './pages/DetailPage';
-// HomePage는 더 이상 기본 페이지가 아니므로 주석 처리하거나 삭제해도 됩니다.
-// import HomePage from './pages/HomePage'; 
+import LandingPage from './pages/LandingPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import './App.css';
 
 function App() {
+  // 인트로 종료 여부 상태
+  const [introFinished, setIntroFinished] = useState(false);
+
   return (
     <BrowserRouter>
       <Header />
       <main className="main-content">
         <Routes>
-          {/* 기본 경로('/')를 다시 GenrePage로 설정합니다. */}
-          <Route path="/" element={<GenrePage />} />
-          
+          {/* introFinished 상태에 따라 다른 페이지를 보여줌 */}
+          <Route 
+            path="/" 
+            element={
+              introFinished ? (
+                <GenrePage />
+              ) : (
+                <LandingPage onFinish={() => setIntroFinished(true)} />
+              )
+            } 
+          />
           <Route path="/results" element={<ResultPage />} />
           <Route path="/video/:videoId" element={<DetailPage />} />
         </Routes>

@@ -29,12 +29,13 @@ function GenrePage() {
       alert('하나 이상의 장르를 선택해주세요.');
       return;
     }
-    // 영상 길이 정보를 빼고, 장르 정보만 전달합니다.
+    // 장르 정보만 전달합니다.
     navigate('/results', { state: { genres: selectedGenres } });
   };
 
   return (
-    <div className="genre-container">
+    // 최상위 div의 클래스 이름을 genre-content로 변경
+    <div className="genre-content">
       <h1>어떤 장르의 단편 영화를 좋아하세요?</h1>
       <p>선호하는 장르를 모두 선택해주세요.</p>
       <div className="genre-grid">

@@ -1,0 +1,43 @@
+.landing-container {
+  height: 100vh; /* 화면을 꽉 채움 */
+  background-color: #141414;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.animation-viewport {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-s-scroll {
+  font-size: 10rem;
+  font-weight: bold;
+  color: #e50914;
+  animation: splash-animation 3s ease-in-out forwards;
+}
+
+@keyframes splash-animation {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(50);
+    opacity: 0;
+  }
+}
