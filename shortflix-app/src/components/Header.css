@@ -21,7 +21,6 @@
   cursor: pointer;
 }
 
-/* --- 아래 검색창 스타일 추가 --- */
 .search-form {
   display: flex;
   align-items: center;
@@ -38,6 +37,7 @@
   padding: 8px 12px;
   font-size: 0.9rem;
   outline: none;
+  transition: width 0.3s ease-in-out;
 }
 
 .search-input::placeholder {
@@ -52,4 +52,24 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+}
+
+/* --- 아래 모바일 반응형 스타일 추가 --- */
+
+/* 화면 너비가 768px 이하일 때 (모바일/태블릿) */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 15px 4%; /* 헤더 내부 여백 축소 */
+  }
+
+  .app-header h1 {
+    font-size: 1.5rem; /* 로고 크기 살짝 줄이기 */
+  }
+
+  .search-input {
+    /* 모바일에서 검색창이 너무 길어지지 않도록 최대 너비 설정 */
+    max-width: 150px; 
+    padding: 6px 10px; /* 내부 여백 줄이기 */
+    font-size: 0.8rem;
+  }
 }

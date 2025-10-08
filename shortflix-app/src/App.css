@@ -36,8 +36,7 @@ html, body, #root {
   }
 }
 
-/* 2. GenrePage 스타일 수정 */
-/* .genre-container를 .genre-content로 변경하고 일부 속성 제거 */
+/* 2. GenrePage 스타일 */
 .genre-content {
   display: flex;
   flex-direction: column;
@@ -109,6 +108,7 @@ p {
 }
 
 /* 3. 반응형 디자인 */
+/* 태블릿 사이즈 (768px 이상) */
 @media (min-width: 768px) {
   h1 {
     font-size: 2.5rem;
@@ -123,5 +123,36 @@ p {
   .next-button {
     padding: 15px 40px;
     font-size: 1.2rem;
+  }
+}
+
+/* 화면 너비가 480px 이하일 때 (일반적인 스마트폰 세로 모드) */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.6rem; /* 제목 글자 크기 축소 */
+  }
+  
+  h2 {
+    font-size: 1.3rem;
+  }
+
+  p {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+
+  .genre-grid {
+    gap: 10px; /* 버튼 사이 간격 축소 */
+    margin: 15px 0;
+  }
+
+  .genre-button {
+    padding: 8px 18px; /* 버튼 내부 여백 축소 */
+    font-size: 0.9rem;
+  }
+
+  .next-button {
+    padding: 12px 30px; /* 버튼 내부 여백 축소 */
+    font-size: 1rem;
   }
 }
