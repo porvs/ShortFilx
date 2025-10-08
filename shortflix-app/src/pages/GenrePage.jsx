@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
 
-// 추천할 장르 목록
+// 추천할 장르 목록 (16개로 확장)
 const genres = [
   '스릴러', '코미디', 'SF', '드라마', '애니메이션',
-  '다큐멘터리', '로맨스', '액션', '호러', '판타지'
+  '다큐멘터리', '로맨스', '액션', '호러', '판타지',
+  '미스터리', '모험', '뮤지컬', '전쟁', '가족', '범죄'
 ];
 
 function GenrePage() {

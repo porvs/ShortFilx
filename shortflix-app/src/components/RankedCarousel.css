@@ -23,11 +23,14 @@
   display: none;
 }
 
+/* --- 이 아래부터 스타일이 변경됩니다 --- */
+
 .rank-item {
   flex-shrink: 0;
-  margin-right: 10px;
-  display: flex;
-  align-items: center;
+  margin-right: 40px; /* 아이템 간 간격 조정 */
+  position: relative; /* 자식 요소 위치의 기준점 역할 */
+  width: 150px; /* 썸네일 너비와 동일하게 설정 */
+  height: 225px; /* 썸네일 높이와 동일하게 설정 */
   transition: transform 0.3s;
   text-decoration: none;
 }
@@ -42,12 +45,18 @@
   font-weight: bold;
   color: #333;
   -webkit-text-stroke: 2px #555;
-  transform: translateX(30%);
+  
+  /* 절대 위치로 변경 */
+  position: absolute;
+  left: -40px; /* 썸네일 왼쪽으로 삐져나오도록 위치 조정 */
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1; /* 썸네일 뒤로 보내기 */
 }
 
 .rank-thumbnail {
-  width: 150px;
-  height: 225px;
+  width: 100%; /* 부모 요소 너비를 꽉 채움 */
+  height: 100%; /* 부모 요소 높이를 꽉 채움 */
   object-fit: cover;
   border-radius: 5px;
   border: 1px solid #333;
@@ -55,9 +64,13 @@
 }
 
 .thumbnail-wrapper {
-  position: relative;
-  margin-left: -60px;
-  z-index: 10;
+  /* 절대 위치로 변경 */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10; /* 숫자 위로 올리기 */
 }
 
 .watched-overlay {
@@ -66,7 +79,6 @@
   left: 0;
   width: 100%;
   height: 100%;
-  /* 배경색을 덜 어둡게 수정 (0.7 -> 0.5) */
   background-color: rgba(0, 0, 0, 0.5); 
   color: white;
   display: flex;
@@ -78,6 +90,5 @@
 }
 
 .rank-item.watched .rank-thumbnail {
-  /* 썸네일 밝기를 조금 더 밝게 수정 (0.4 -> 0.6) */
   filter: brightness(0.6); 
 }

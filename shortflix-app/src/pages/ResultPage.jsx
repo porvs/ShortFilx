@@ -2,20 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import RankedCarousel from '../components/RankedCarousel';
 import HeroBanner from '../components/HeroBanner';
-import '../components/Filter.css'; // 필터 CSS 불러오기
+import '../components/Filter.css'; 
 import './HomePage.css';
 
-// 전체 장르 목록 (무작위 선택을 위해 사용)
+// 전체 장르 목록 (16개로 확장)
 const allGenres = [
   '스릴러', '코미디', 'SF', '드라마', '애니메이션',
-  '다큐멘터리', '로맨스', '액션', '호러', '판타지'
+  '다큐멘터리', '로맨스', '액션', '호러', '판타지',
+  '미스터리', '모험', '뮤지컬', '전쟁', '가족', '범죄'
 ];
 
-// 한국어 장르를 영어 검색어로 바꿔주기 위한 객체
+// 한국어 장르를 영어 검색어로 바꿔주기 위한 객체 (16개로 확장)
 const genreMap = {
   '스릴러': 'thriller', '코미디': 'comedy', 'SF': 'sci-fi', '드라마': 'drama', 
   '애니메이션': 'animation', '다큐멘터리': 'documentary', '로맨스': 'romance', 
-  '액션': 'action', '호러': 'horror', '판타지': 'fantasy'
+  '액션': 'action', '호러': 'horror', '판타지': 'fantasy',
+  '미스터리': 'mystery', '모험': 'adventure', '뮤지컬': 'musical',
+  '전쟁': 'war', '가족': 'family', '범죄': 'crime'
 };
 
 // 필터 버튼 옵션
@@ -34,8 +37,8 @@ function ResultPage() {
   const [durationFilter, setDurationFilter] = useState('any');
   
   const [selectedGenreVideos, setSelectedGenreVideos] = useState([]);
-  const [randomGenre, setRandomGenre] = useState(''); // 무작위 추천 state 복원
-  const [randomGenreVideos, setRandomGenreVideos] = useState([]); // 무작위 추천 state 복원
+  const [randomGenre, setRandomGenre] = useState('');
+  const [randomGenreVideos, setRandomGenreVideos] = useState([]);
   const [watchedList, setWatchedList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -53,7 +56,7 @@ function ResultPage() {
             return;
         }
       try {
-        // 무작위 장르 선택 로직 복원
+        // 무작위 장르 선택 (단, 사용자가 선택한 장르는 제외)
         const availableGenres = allGenres.filter(g => !selectedGenres.includes(g));
         const random = availableGenres[Math.floor(Math.random() * availableGenres.length)] || allGenres[0];
         setRandomGenre(random);
@@ -83,16 +86,9 @@ function ResultPage() {
         const selectedData = await selectedRes.json();
         const randomData = await randomRes.json();
 
-        // API 결과에서 시청한 영상을 필터링합니다.
-        const filteredSelectedVideos = selectedData.items.filter(
-          video => !watchedList.includes(video.id.videoId)
-        ).slice(0, 10); // 필터링 후 10개만 선택
-        const filteredRandomVideos = randomData.items.filter(
-            video => !watchedList.includes(video.id.videoId)
-        ).slice(0, 10); // 필터링 후 10개만 선택
-        
-        setSelectedGenreVideos(filteredSelectedVideos);
-        setRandomGenreVideos(filteredRandomVideos); // 무작위 추천 결과 저장
+        // API 결과에서 시청한 영상을 필터링하지 않고 그대로 전달 (UI에서 처리)
+        setSelectedGenreVideos(selectedData.items.slice(0, 10));
+        setRandomGenreVideos(randomData.items.slice(0, 10));
         
       } catch (err) {
         setError(err.message);
@@ -131,8 +127,6 @@ function ResultPage() {
         ) : (
             <>
                 <RankedCarousel title={`'${selectedGenres.join(', ')}' 장르 TOP 10`} videos={selectedGenreVideos} watchedList={watchedList} />
-                
-                {/* 무작위 추천 캐러셀 추가 */}
                 <RankedCarousel title={`'${randomGenre}' 장르 TOP 10, 이런 건 어떠세요?`} videos={randomGenreVideos} watchedList={watchedList} />
             </>
         )}
