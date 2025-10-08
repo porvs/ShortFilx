@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import RankedCarousel from '../components/RankedCarousel';
 import HeroBanner from '../components/HeroBanner';
-import Carousel from '../components/Carousel'; // 일반 Carousel 컴포넌트 불러오기
+import Carousel from '../components/Carousel';
 import '../components/Filter.css';
 import './HomePage.css';
+
+// Duration 파싱을 위한 라이브러리 (ISO 8601 형식)
+import { parse as parseDuration } from 'iso8601-duration';
 
 // 전체 장르 목록 (무작위 선택을 위해 사용)
 const allGenres = [
@@ -33,11 +36,11 @@ const durations = [
 function ResultPage() {
   const location = useLocation();
   const selectedGenres = location.state?.genres || [];
-
+  
   const [durationFilter, setDurationFilter] = useState('any');
-
+  
   const [selectedGenreVideos, setSelectedGenreVideos] = useState([]);
-  const [randomGenre, setRandomGenre] = useState('');
+  const [randomGenre, setRandomGenre] = useState([]); // 초기값을 빈 배열로 설정
   const [randomGenreVideos, setRandomGenreVideos] = useState([]);
   const [watchedList, setWatchedList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +50,7 @@ function ResultPage() {
     setLoading(true);
     const watchedList = JSON.parse(localStorage.getItem('watchedVideos') || '[]');
     setWatchedList(watchedList);
-
+    
     const fetchAllVideos = async () => {
         if (selectedGenres.length === 0) {
             setError("선택된 장르가 없습니다.");
@@ -55,40 +58,63 @@ function ResultPage() {
             return;
         }
       try {
-        // 무작위 장르 선택 (단, 사용자가 선택한 장르는 제외)
         const availableGenres = allGenres.filter(g => !selectedGenres.includes(g));
         const random = availableGenres[Math.floor(Math.random() * availableGenres.length)] || allGenres[0];
         setRandomGenre(random);
 
-        // 각 장르에 대한 영어 검색어 생성
         const selectedEnglishGenres = selectedGenres.map(g => genreMap[g] || g);
         const randomEnglishGenre = genreMap[random] || random;
-
-        let selectedSearchQuery = `${selectedEnglishGenres.join(' ')} short film`;
-        let randomSearchQuery = `${randomEnglishGenre} short film`;
-
-        // 쇼츠를 제외하기 위한 검색어 수정
-        if (durationFilter === 'any' || durationFilter === 'short') {
-            selectedSearchQuery += ' -shorts';
-            randomSearchQuery += ' -shorts';
-        }
+        
+        // 검색어에 항상 '-shorts'를 포함
+        const selectedSearchQuery = `${selectedEnglishGenres.join(' ')} short film -shorts`;
+        const randomSearchQuery = `${randomEnglishGenre} short film -shorts`;
 
         const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-        // API 호출을 다시 2개로 복원
         const [selectedRes, randomRes] = await Promise.all([
           fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(selectedSearchQuery)}&type=video&maxResults=15&sortOrder=viewCount&videoDuration=${durationFilter}&key=${YOUTUBE_API_KEY}`),
           fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(randomSearchQuery)}&type=video&maxResults=15&sortOrder=viewCount&videoDuration=${durationFilter}&key=${YOUTUBE_API_KEY}`)
         ]);
-
+        
         if (!selectedRes.ok || !randomRes.ok) throw new Error('YouTube API에서 데이터를 가져오는데 실패했습니다.');
-        const selectedData = await selectedRes.json();
-        const randomData = await randomRes.json();
+        let selectedData = await selectedRes.json();
+        let randomData = await randomRes.json();
 
-        // API 결과에서 시청한 영상을 필터링하지 않고 그대로 전달 (UI에서 처리)
-        setSelectedGenreVideos(selectedData.items.slice(0, 10));
-        setRandomGenreVideos(randomData.items.slice(0, 10));
+        // --- 추가: 1분 미만 영상 필터링 로직 ---
+        const filterShortVideos = async (items) => {
+            if (!items || items.length === 0) return [];
+            
+            const videoIds = items.map(item => item.id.videoId).join(',');
+            if (!videoIds) return [];
 
+            const detailsRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${YOUTUBE_API_KEY}`);
+            if (!detailsRes.ok) {
+                console.error("Failed to fetch video details for duration check.");
+                return items; // 상세 정보 가져오기 실패 시 일단 전부 반환
+            }
+            const detailsData = await detailsRes.json();
+            const videoDurations = {};
+            detailsData.items.forEach(detail => {
+                const duration = parseDuration(detail.contentDetails.duration);
+                // 총 초 계산: 시간 * 3600 + 분 * 60 + 초
+                videoDurations[detail.id] = (duration.hours || 0) * 3600 + (duration.minutes || 0) * 60 + (duration.seconds || 0);
+            });
+
+            return items.filter(item => {
+                const totalSeconds = videoDurations[item.id.videoId];
+                // 1분(60초) 이상인 영상만 포함
+                return totalSeconds >= 60;
+            });
+        };
+
+        const filteredSelectedVideos = await filterShortVideos(selectedData.items);
+        const filteredRandomVideos = await filterShortVideos(randomData.items);
+        // --- 필터링 로직 끝 ---
+        
+        // 필터링된 영상 중 첫 10개만 사용
+        setSelectedGenreVideos(filteredSelectedVideos.slice(0, 10));
+        setRandomGenreVideos(filteredRandomVideos.slice(0, 10));
+        
       } catch (err) {
         setError(err.message);
       } finally {
@@ -105,18 +131,20 @@ function ResultPage() {
   return (
     <div className="homepage-container">
       {!loading && <HeroBanner video={heroVideo} />}
-
+      
       <div className="carousels-wrapper">
         <div className="filter-container">
-            {durations.map(d => (
-                <button 
-                    key={d.value} 
-                    className={`filter-button ${durationFilter === d.value ? 'active' : ''}`}
-                    onClick={() => setDurationFilter(d.value)}
-                >
-                    {d.label}
-                </button>
-            ))}
+            <div className="filter-segment">
+                {durations.map(d => (
+                    <button 
+                        key={d.value} 
+                        className={`filter-button ${durationFilter === d.value ? 'active' : ''}`}
+                        onClick={() => setDurationFilter(d.value)}
+                    >
+                        {d.label}
+                    </button>
+                ))}
+            </div>
         </div>
 
         {loading ? (
@@ -124,7 +152,6 @@ function ResultPage() {
         ) : (
             <>
                 <RankedCarousel title={`'${selectedGenres.join(', ')}' 장르 TOP 10`} videos={selectedGenreVideos} watchedList={watchedList} />
-                {/* 두 번째 목록을 RankedCarousel -> Carousel로 변경 */}
                 <Carousel title={`'${randomGenre}' 장르 추천, 이런 건 어떠세요?`} videos={randomGenreVideos} watchedList={watchedList} />
             </>
         )}
