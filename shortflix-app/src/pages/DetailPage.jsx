@@ -13,7 +13,6 @@ function DetailPage() {
   const playerRef = useRef(null);
 
   useEffect(() => {
-    // --- 시청 기록 저장 로직 ---
     try {
       const watchedList = JSON.parse(localStorage.getItem('watchedVideos') || '[]');
       if (!watchedList.includes(videoId)) {
@@ -23,7 +22,6 @@ function DetailPage() {
     } catch (e) {
       console.error("Failed to update watch history:", e);
     }
-    // --- 시청 기록 저장 로직 끝 ---
 
     const fetchVideoDetails = async () => {
       try {
@@ -31,7 +29,11 @@ function DetailPage() {
         const response = await fetch(
           `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${YOUTUBE_API_KEY}&hl=ko`
         );
-        if (!response.ok) throw new Error('YouTube API에서 영상 정보를 가져오는데 실패했습니다.');
+
+        if (!response.ok) {
+          throw new Error('API 한도 초과 또는 네트워크 오류로 영상 정보를 불러올 수 없습니다.');
+        }
+
         const data = await response.json();
         if (data.items.length > 0) {
           setVideoDetails(data.items[0]);
@@ -90,10 +92,11 @@ function DetailPage() {
 
   }, [videoId, isUnplayable]);
 
-  if (loading) {
+  if (loading && !error) { // 에러가 없을 때만 로딩 표시
     return <div className="detail-container"><p className="detail-loading-text">영상 정보를 불러오는 중...</p></div>;
   }
 
+  // 에러가 있으면 플레이어보다 먼저 에러 메시지를 보여줌
   if (error) {
     return <div className="detail-container"><p className="detail-error-text">⚠️ 이런! 에러가 발생했어요: {error}</p></div>;
   }

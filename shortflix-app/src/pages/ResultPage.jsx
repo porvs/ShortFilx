@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // 'useEffect' 뒤에 '}' 추가
 import { useLocation, useSearchParams, Link } from 'react-router-dom';
 import RankedCarousel from '../components/RankedCarousel';
 import HeroBanner from '../components/HeroBanner';
@@ -46,13 +46,15 @@ function ResultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pageTitle, setPageTitle] = useState('');
+  const [isCached, setIsCached] = useState(false);
 
   useEffect(() => {
+    // ... (이하 모든 코드는 이전과 동일)
     setLoading(true);
+    setIsCached(false);
     const watchedList = JSON.parse(localStorage.getItem('watchedVideos') || '[]');
     setWatchedList(watchedList);
     
-    // 1분 미만 영상 필터링을 위한 헬퍼 함수
     const filterShortVideos = async (items, apiKey) => {
         if (!items || items.length === 0) return [];
         const videoIds = items.map(item => item.id.videoId).join(',');
@@ -79,18 +81,19 @@ function ResultPage() {
         const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
         if (searchTerm) {
-          // --- 검색 모드 ---
           setPageTitle(`'${searchTerm}' 검색 결과`);
-          // 검색어에 'short film'을 추가
           let searchQuery = `${searchTerm} short film -shorts`;
           const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=20&sortOrder=relevance&videoDuration=${durationFilter}&key=${YOUTUBE_API_KEY}`);
           if (!response.ok) throw new Error('YouTube API에서 검색 결과를 가져오는데 실패했습니다.');
           const data = await response.json();
           const filtered = await filterShortVideos(data.items, YOUTUBE_API_KEY);
+          
           setVideos(filtered.slice(0, 10));
           setRandomGenreVideos([]);
+          setIsCached(false);
+          localStorage.setItem('cached_videos', JSON.stringify(filtered.slice(0, 10)));
+
         } else {
-          // --- 장르 선택 모드 ---
           const availableGenres = allGenres.filter(g => !selectedGenres.includes(g));
           const random = availableGenres[Math.floor(Math.random() * availableGenres.length)] || allGenres[0];
           setRandomGenre(random);
@@ -113,10 +116,25 @@ function ResultPage() {
 
           setVideos(filteredSelected.slice(0, 10));
           setRandomGenreVideos(filteredRandom.slice(0, 10));
+          
+          localStorage.setItem('cached_videos', JSON.stringify(filteredSelected.slice(0, 10)));
+          localStorage.setItem('cached_random_videos', JSON.stringify(filteredRandom.slice(0, 10)));
+          localStorage.setItem('cached_random_genre', random);
+          setIsCached(false);
         }
-
       } catch (err) {
-        setError(err.message);
+        const cachedVideos = JSON.parse(localStorage.getItem('cached_videos') || '[]');
+        const cachedRandomVideos = JSON.parse(localStorage.getItem('cached_random_videos') || '[]');
+        const cachedRandomGenre = localStorage.getItem('cached_random_genre') || '';
+
+        if (cachedVideos.length > 0) {
+          setVideos(cachedVideos);
+          setRandomGenreVideos(cachedRandomVideos);
+          setRandomGenre(cachedRandomGenre);
+          setIsCached(true);
+        } else {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -124,9 +142,7 @@ function ResultPage() {
     fetchData();
   }, [location.state, durationFilter, searchTerm]);
 
-  if (error) return <div className="error-text">⚠️ 이런! 에러가 발생했어요: {error}</div>;
-
-  const mainVideos = searchTerm ? videos : videos; // 검색 결과에서도 videos를 사용하도록 수정
+  const mainVideos = searchTerm ? videos : videos;
   const heroVideo = mainVideos.length > 0 ? mainVideos.filter(v => !watchedList.includes(v.id.videoId))[0] || mainVideos[0] : null;
 
   return (
@@ -134,6 +150,10 @@ function ResultPage() {
       {!loading && !searchTerm && <HeroBanner video={heroVideo} />}
       
       <div className="carousels-wrapper">
+        {isCached && <p style={{textAlign: 'center', color: '#ffcc00', marginBottom: '20px'}}>
+          ⚠️ API 한도 초과로 이전에 불러온 데이터를 표시합니다.
+        </p>}
+
         <div className="filter-container">
             <div className="filter-segment">
                 {durations.map(d => (
@@ -146,14 +166,18 @@ function ResultPage() {
 
         {loading ? (
             <div className="loading-text">🔍 영화 목록을 불러오고 있어요...</div>
+        ) : error ? (
+            <div className="error-text" style={{padding: '40px 20px', textAlign: 'center'}}>⚠️ 이런! 에러가 발생했어요: {error}</div>
         ) : (
             <>
                 {searchTerm ? 
                     <Carousel title={pageTitle} videos={videos} watchedList={watchedList} />
                     : 
                     <>
-                        <RankedCarousel title={`'${selectedGenres.join(', ')}' 장르 TOP 10`} videos={mainVideos} watchedList={watchedList} />
-                        <Carousel title={`'${randomGenre}' 장르 추천, 이런 건 어떠세요?`} videos={randomGenreVideos} watchedList={watchedList} />
+                        <RankedCarousel title={`${selectedGenres.join(', ')} 장르 TOP 10`} videos={mainVideos} watchedList={watchedList} />
+                        {randomGenre && (
+                          <Carousel title={`${randomGenre} 장르 추천, 이런 건 어떠세요?`} videos={randomGenreVideos} watchedList={watchedList} />
+                        )}
                     </>
                 }
             </>
