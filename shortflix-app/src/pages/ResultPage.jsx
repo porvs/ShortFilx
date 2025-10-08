@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams, Link } from 'react-router-dom';
 import RankedCarousel from '../components/RankedCarousel';
 import HeroBanner from '../components/HeroBanner';
 import Carousel from '../components/Carousel';
 import '../components/Filter.css';
 import './HomePage.css';
-
-// Duration 파싱을 위한 라이브러리 (ISO 8601 형식)
 import { parse as parseDuration } from 'iso8601-duration';
 
 // 전체 장르 목록 (무작위 선택을 위해 사용)
@@ -35,112 +33,111 @@ const durations = [
 
 function ResultPage() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
   const selectedGenres = location.state?.genres || [];
+  const searchTerm = searchParams.get('search');
   
   const [durationFilter, setDurationFilter] = useState('any');
-  
-  const [selectedGenreVideos, setSelectedGenreVideos] = useState([]);
-  const [randomGenre, setRandomGenre] = useState([]); // 초기값을 빈 배열로 설정
+  const [videos, setVideos] = useState([]);
+  const [randomGenre, setRandomGenre] = useState('');
   const [randomGenreVideos, setRandomGenreVideos] = useState([]);
   const [watchedList, setWatchedList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pageTitle, setPageTitle] = useState('');
 
   useEffect(() => {
     setLoading(true);
     const watchedList = JSON.parse(localStorage.getItem('watchedVideos') || '[]');
     setWatchedList(watchedList);
     
-    const fetchAllVideos = async () => {
-        if (selectedGenres.length === 0) {
-            setError("선택된 장르가 없습니다.");
-            setLoading(false);
-            return;
-        }
+    // 1분 미만 영상 필터링을 위한 헬퍼 함수
+    const filterShortVideos = async (items, apiKey) => {
+        if (!items || items.length === 0) return [];
+        const videoIds = items.map(item => item.id.videoId).join(',');
+        if (!videoIds) return [];
+        const detailsRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${apiKey}`);
+        if (!detailsRes.ok) return items;
+        const detailsData = await detailsRes.json();
+        const videoDurations = {};
+        detailsData.items.forEach(detail => {
+            const duration = parseDuration(detail.contentDetails.duration);
+            videoDurations[detail.id] = (duration.hours || 0) * 3600 + (duration.minutes || 0) * 60 + (duration.seconds || 0);
+        });
+        return items.filter(item => videoDurations[item.id.videoId] >= 60);
+    };
+
+    const fetchData = async () => {
+      if (!searchTerm && selectedGenres.length === 0) {
+        setError("검색어나 선택된 장르가 없습니다.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const availableGenres = allGenres.filter(g => !selectedGenres.includes(g));
-        const random = availableGenres[Math.floor(Math.random() * availableGenres.length)] || allGenres[0];
-        setRandomGenre(random);
-
-        const selectedEnglishGenres = selectedGenres.map(g => genreMap[g] || g);
-        const randomEnglishGenre = genreMap[random] || random;
-        
-        // 검색어에 항상 '-shorts'를 포함
-        const selectedSearchQuery = `${selectedEnglishGenres.join(' ')} short film -shorts`;
-        const randomSearchQuery = `${randomEnglishGenre} short film -shorts`;
-
         const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
-        const [selectedRes, randomRes] = await Promise.all([
-          fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(selectedSearchQuery)}&type=video&maxResults=15&sortOrder=viewCount&videoDuration=${durationFilter}&key=${YOUTUBE_API_KEY}`),
-          fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(randomSearchQuery)}&type=video&maxResults=15&sortOrder=viewCount&videoDuration=${durationFilter}&key=${YOUTUBE_API_KEY}`)
-        ]);
-        
-        if (!selectedRes.ok || !randomRes.ok) throw new Error('YouTube API에서 데이터를 가져오는데 실패했습니다.');
-        let selectedData = await selectedRes.json();
-        let randomData = await randomRes.json();
+        if (searchTerm) {
+          // --- 검색 모드 ---
+          setPageTitle(`'${searchTerm}' 검색 결과`);
+          // 검색어에 'short film'을 추가
+          let searchQuery = `${searchTerm} short film -shorts`;
+          const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=20&sortOrder=relevance&videoDuration=${durationFilter}&key=${YOUTUBE_API_KEY}`);
+          if (!response.ok) throw new Error('YouTube API에서 검색 결과를 가져오는데 실패했습니다.');
+          const data = await response.json();
+          const filtered = await filterShortVideos(data.items, YOUTUBE_API_KEY);
+          setVideos(filtered.slice(0, 10));
+          setRandomGenreVideos([]);
+        } else {
+          // --- 장르 선택 모드 ---
+          const availableGenres = allGenres.filter(g => !selectedGenres.includes(g));
+          const random = availableGenres[Math.floor(Math.random() * availableGenres.length)] || allGenres[0];
+          setRandomGenre(random);
+          const selectedEnglishGenres = selectedGenres.map(g => genreMap[g] || g);
+          const randomEnglishGenre = genreMap[random] || random;
+          let selectedSearchQuery = `${selectedEnglishGenres.join(' ')} short film -shorts`;
+          let randomSearchQuery = `${randomEnglishGenre} short film -shorts`;
 
-        // --- 추가: 1분 미만 영상 필터링 로직 ---
-        const filterShortVideos = async (items) => {
-            if (!items || items.length === 0) return [];
-            
-            const videoIds = items.map(item => item.id.videoId).join(',');
-            if (!videoIds) return [];
+          const [selectedRes, randomRes] = await Promise.all([
+            fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(selectedSearchQuery)}&type=video&maxResults=15&sortOrder=viewCount&videoDuration=${durationFilter}&key=${YOUTUBE_API_KEY}`),
+            fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(randomSearchQuery)}&type=video&maxResults=15&sortOrder=viewCount&videoDuration=${durationFilter}&key=${YOUTUBE_API_KEY}`)
+          ]);
+          
+          if (!selectedRes.ok || !randomRes.ok) throw new Error('YouTube API에서 데이터를 가져오는데 실패했습니다.');
+          const selectedData = await selectedRes.json();
+          const randomData = await randomRes.json();
+          
+          const filteredSelected = await filterShortVideos(selectedData.items, YOUTUBE_API_KEY);
+          const filteredRandom = await filterShortVideos(randomData.items, YOUTUBE_API_KEY);
 
-            const detailsRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${YOUTUBE_API_KEY}`);
-            if (!detailsRes.ok) {
-                console.error("Failed to fetch video details for duration check.");
-                return items; // 상세 정보 가져오기 실패 시 일단 전부 반환
-            }
-            const detailsData = await detailsRes.json();
-            const videoDurations = {};
-            detailsData.items.forEach(detail => {
-                const duration = parseDuration(detail.contentDetails.duration);
-                // 총 초 계산: 시간 * 3600 + 분 * 60 + 초
-                videoDurations[detail.id] = (duration.hours || 0) * 3600 + (duration.minutes || 0) * 60 + (duration.seconds || 0);
-            });
+          setVideos(filteredSelected.slice(0, 10));
+          setRandomGenreVideos(filteredRandom.slice(0, 10));
+        }
 
-            return items.filter(item => {
-                const totalSeconds = videoDurations[item.id.videoId];
-                // 1분(60초) 이상인 영상만 포함
-                return totalSeconds >= 60;
-            });
-        };
-
-        const filteredSelectedVideos = await filterShortVideos(selectedData.items);
-        const filteredRandomVideos = await filterShortVideos(randomData.items);
-        // --- 필터링 로직 끝 ---
-        
-        // 필터링된 영상 중 첫 10개만 사용
-        setSelectedGenreVideos(filteredSelectedVideos.slice(0, 10));
-        setRandomGenreVideos(filteredRandomVideos.slice(0, 10));
-        
       } catch (err) {
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchAllVideos();
-  }, [location.state, durationFilter]);
+    fetchData();
+  }, [location.state, durationFilter, searchTerm]);
 
   if (error) return <div className="error-text">⚠️ 이런! 에러가 발생했어요: {error}</div>;
 
-  const heroVideo = selectedGenreVideos.length > 0 ? selectedGenreVideos.filter(v => !watchedList.includes(v.id.videoId))[0] || selectedGenreVideos[0] : null;
+  const mainVideos = searchTerm ? videos : videos; // 검색 결과에서도 videos를 사용하도록 수정
+  const heroVideo = mainVideos.length > 0 ? mainVideos.filter(v => !watchedList.includes(v.id.videoId))[0] || mainVideos[0] : null;
 
   return (
     <div className="homepage-container">
-      {!loading && <HeroBanner video={heroVideo} />}
+      {!loading && !searchTerm && <HeroBanner video={heroVideo} />}
       
       <div className="carousels-wrapper">
         <div className="filter-container">
             <div className="filter-segment">
                 {durations.map(d => (
-                    <button 
-                        key={d.value} 
-                        className={`filter-button ${durationFilter === d.value ? 'active' : ''}`}
-                        onClick={() => setDurationFilter(d.value)}
-                    >
+                    <button key={d.value} className={`filter-button ${durationFilter === d.value ? 'active' : ''}`} onClick={() => setDurationFilter(d.value)} >
                         {d.label}
                     </button>
                 ))}
@@ -148,11 +145,17 @@ function ResultPage() {
         </div>
 
         {loading ? (
-            <div className="loading-text">🔍 영화 순위를 불러오고 있어요...</div>
+            <div className="loading-text">🔍 영화 목록을 불러오고 있어요...</div>
         ) : (
             <>
-                <RankedCarousel title={`'${selectedGenres.join(', ')}' 장르 TOP 10`} videos={selectedGenreVideos} watchedList={watchedList} />
-                <Carousel title={`'${randomGenre}' 장르 추천, 이런 건 어떠세요?`} videos={randomGenreVideos} watchedList={watchedList} />
+                {searchTerm ? 
+                    <Carousel title={pageTitle} videos={videos} watchedList={watchedList} />
+                    : 
+                    <>
+                        <RankedCarousel title={`'${selectedGenres.join(', ')}' 장르 TOP 10`} videos={mainVideos} watchedList={watchedList} />
+                        <Carousel title={`'${randomGenre}' 장르 추천, 이런 건 어떠세요?`} videos={randomGenreVideos} watchedList={watchedList} />
+                    </>
+                }
             </>
         )}
       </div>
