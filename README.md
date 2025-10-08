@@ -1,6 +1,7 @@
 # ShortFilx
 A semester project to build a web application that recommends short films based on user-selected genres and duration, powered by React and the YouTube API.
 
+> 영상 요약, 사용자 추천, 자막 기능 등을 위해 Gemini API를 사용해보려 했지만, 발급 과정에서 요구되는 정보가 많아 사용을 포기했습니다.
 
 >
 > ## 필독!!
